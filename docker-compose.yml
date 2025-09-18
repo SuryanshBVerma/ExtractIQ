@@ -12,3 +12,14 @@ services:
       - ./backend:/app
     env_file:
       - ./backend/.env
+  
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    image: extractiq-frontend
+    container_name: extractiq-frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
