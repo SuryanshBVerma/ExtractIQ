@@ -1,0 +1,11 @@
+# Ignore Node.js module folder
+node_modules
+
+# Ignore development and temporary files
+npm-debug.log
+.git
+.gitignore
+Dockerfile.dev
+
+# Ignore the build output folder in development
+build
