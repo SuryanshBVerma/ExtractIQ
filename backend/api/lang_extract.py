@@ -24,10 +24,10 @@ async def extract(req: ExtractRequest):
     ) for ex in req.examples]
 
     results = lx.extract(
-        api_key=API_KEY,
         text_or_documents=req.text,
         prompt_description=req.prompt,
         model_id=req.model_id,
         examples=examples,
+        
     )
     return results
