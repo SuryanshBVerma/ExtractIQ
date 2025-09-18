@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
 import uvicorn
-from api import health, lang_extract
+from api import health, lang_extract, document
 from middleware.test_middleware import TestMiddleware
 from dotenv import load_dotenv
 import os
@@ -20,6 +20,7 @@ async def root():
 
 app.include_router(health.router, prefix='/api')
 app.include_router(lang_extract.router, prefix='/api')
+app.include_router(document.router, prefix='/api')
 
 
 if __name__ == '__main__':
