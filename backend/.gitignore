@@ -77,3 +77,4 @@ test
 frontend/src/environments
 
 .codecraft*
+db
