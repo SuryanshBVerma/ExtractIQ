@@ -6,12 +6,13 @@ export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
 
   const navItems = [
-    "Dashboard",
-    "Documents",
-    "Schemas",
-    "Jobs",
-    "Analytics",
-    "Settings",
+    { name: "Dashboard", link: "/" },
+    { name: "Upload", link: "/upload" },
+    { name: "Documents", link: "/documents" },
+    { name: "Schemas", link: "/schemas" },
+    { name: "Jobs", link: "/jobs" },
+    { name: "Analytics", link: "/analytics" },
+    { name: "Settings", link: "/settings" },
   ];
 
   return (
@@ -32,11 +33,11 @@ export default function Navbar() {
           <div className="hidden md:flex space-x-6">
             {navItems.map((item) => (
               <a
-                key={item}
-                href="#"
+                key={item.name}
+                href={item.link}
                 className="text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-green-600 dark:hover:text-white"
               >
-                {item}
+                {item.name}
               </a>
             ))}
           </div>
@@ -59,11 +60,11 @@ export default function Navbar() {
         <div className="md:hidden border-t border-gray-200 dark:border-gray-700 px-4 py-3 space-y-2 bg-white dark:bg-gray-900">
           {navItems.map((item) => (
             <a
-              key={item}
-              href="#"
+              key={item.name}
+              href={item.link}
               className="block text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"
             >
-              {item}
+              {item.name}
             </a>
           ))}
         </div>
