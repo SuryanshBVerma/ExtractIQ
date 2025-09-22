@@ -1,13 +1,17 @@
 // Navbar.tsx
 import { useState } from "react";
-import { Brain, Menu, X } from "lucide-react";
+import { Brain, Menu, Moon, Sun, X } from "lucide-react";
 
-export default function Navbar() {
+interface NavbarProps {
+  isDark: boolean;
+  onToggleDark: () => void;
+}
+
+export default function Navbar({ isDark, onToggleDark }: NavbarProps) {
   const [isOpen, setIsOpen] = useState(false);
 
   const navItems = [
     { name: "Dashboard", link: "/" },
-    { name: "Upload", link: "/upload" },
     { name: "Documents", link: "/documents" },
     { name: "Schemas", link: "/schemas" },
     { name: "Jobs", link: "/jobs" },
@@ -16,11 +20,11 @@ export default function Navbar() {
   ];
 
   return (
-    <nav className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800">
+    <nav className="bg-white dark:bg-gray-950 border-b border-gray-200 dark:border-gray-800">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 items-center justify-between">
           <div className="flex items-center space-x-2">
-            <Brain 
+            <Brain
               height={30}
               width={30}
             />
@@ -35,7 +39,7 @@ export default function Navbar() {
               <a
                 key={item.name}
                 href={item.link}
-                className="text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-green-600 dark:hover:text-white"
+                className="text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-green-600 dark:hover:text-green-600"
               >
                 {item.name}
               </a>
@@ -44,6 +48,14 @@ export default function Navbar() {
 
           {/* Right: Actions */}
           <div className="flex items-center space-x-4">
+            {/* Dark mode toggle button */}
+            <button
+              className="p-2 rounded transition-colors bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200 border border-gray-200 dark:border-gray-700 hover:bg-gray-200 dark:hover:bg-gray-700"
+              onClick={onToggleDark}
+              aria-label="Toggle dark mode"
+            >
+              {isDark ? <Moon /> : <Sun />}
+            </button>
             {/* Mobile Menu Button */}
             <button
               className="md:hidden p-2 text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-white"

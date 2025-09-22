@@ -1,7 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { Skeleton } from '../components/ui/skeleton';
 import { Button } from '../components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from '../components/ui/dialog';
+import { Input } from '../components/ui/input';
 
 type Document = {
     id: number;
@@ -28,6 +30,10 @@ const DocumentsPage: React.FC = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
+    const [open, setOpen] = useState(false);
+    const [dragActive, setDragActive] = useState(false);
+    const inputRef = useRef<HTMLInputElement | null>(null);
+
     useEffect(() => {
         fetchDocuments()
             .then((docs) => {
@@ -40,9 +46,78 @@ const DocumentsPage: React.FC = () => {
             });
     }, []);
 
+    // Drag and drop handlers
+    const handleDrag = (e: React.DragEvent<HTMLDivElement>) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (e.type === 'dragenter' || e.type === 'dragover') {
+            setDragActive(true);
+        } else if (e.type === 'dragleave') {
+            setDragActive(false);
+        }
+    };
+
+    const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setDragActive(false);
+        if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+            // Handle file upload logic here
+            // e.dataTransfer.files
+        }
+    };
+
+    const handleBrowseClick = () => {
+        inputRef.current?.click();
+    };
+
     return (
         <div className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8 py-8">
-            <h1 className="text-title-large font-semibold leading-tight text-light-fg-default dark:text-dark-fg-default mb-6">Documents</h1>
+            <div className="flex items-center justify-between mb-6">
+                <h1 className="text-title-large font-semibold leading-tight text-light-fg-default dark:text-dark-fg-default">Documents</h1>
+                <Button
+                    onClick={() => setOpen(true)}
+                    className="font-medium text-sm px-4 py-2 rounded transition-all duration-150 hover:shadow-sm hover:-translate-y-0.5 hover:cursor-pointer"
+                >
+                    Upload
+                </Button>
+            </div>
+
+            <Dialog open={open} onOpenChange={setOpen}>
+                <DialogContent className="max-w-md mx-auto">
+                    <DialogHeader>
+                        <DialogTitle>Upload Document</DialogTitle>
+                    </DialogHeader>
+                    <div
+                        className={`border-2 border-dashed rounded-lg p-6 flex flex-col items-center justify-center cursor-pointer transition-all duration-150 ${dragActive ? 'border-green bg-muted' : 'border-border bg-card'}`}
+                        onDragEnter={handleDrag}
+                        onDragOver={handleDrag}
+                        onDragLeave={handleDrag}
+                        onDrop={handleDrop}
+                    >
+                        <span className="text-body-medium text-muted-foreground mb-2">Drag & drop files here</span>
+                        <span className="text-body-small text-muted-foreground mb-4">or</span>
+                        <Button variant="secondary" onClick={handleBrowseClick} className="mb-2">Browse from computer</Button>
+                        <Input 
+                            ref={inputRef} 
+                            type="file" 
+                            multiple 
+                            className="hidden" 
+                            />
+                    </div>
+                    <DialogClose asChild>
+                        <Button 
+                            variant="ghost" 
+                            className="mt-4 w-full border border-red-100 hover:cursor-pointer
+                              hover:bg-red-50 hover:text-red-500
+                              dark:hover:bg-red-900 dark:hover:text-red-100 dark:border-red-900"
+                        >
+                            Close
+                        </Button>
+                    </DialogClose>
+                </DialogContent>
+            </Dialog>
+
             {loading ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {[...Array(3)].map((_, i) => (
@@ -70,7 +145,7 @@ const DocumentsPage: React.FC = () => {
                             <CardContent>
                                 <div className="text-body-small text-light-fg-muted dark:text-dark-fg-muted mb-1">Uploaded: {doc.uploaded}</div>
                                 <div className="text-body-small text-light-fg-muted dark:text-dark-fg-muted mb-4">
-                                    Status: <span className={doc.status === 'Processed' ? 'text-green' : 'text-yellow-600'}>{doc.status}</span>
+                                    Status: <span className={doc.status === 'Processed' ? 'text-green-600' : 'text-yellow-600'}>{doc.status}</span>
                                 </div>
                                 <Button>
                                     View Document

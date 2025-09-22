@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import DocumentsPage from './pages/DocumentsPage';
@@ -33,9 +33,32 @@ function NotFound() {
 }
 
 function App() {
+  // Dark mode state and handler
+  // Persist dark mode state in localStorage
+  const [isDark, setIsDark] = useState(() => {
+    const stored = localStorage.getItem('theme-dark');
+    if (stored !== null) {
+      return stored === 'true';
+    }
+    return document.documentElement.classList.contains('dark');
+  });
+
+  useEffect(() => {
+    if (isDark) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+    localStorage.setItem('theme-dark', isDark ? 'true' : 'false');
+  }, [isDark]);
+
+  const handleToggleDark = () => {
+    setIsDark((prev) => !prev);
+  };
+
   return (
     <Router>
-      <Navbar />
+      <Navbar isDark={isDark} onToggleDark={handleToggleDark} />
       <main>
         <Routes>
           <Route path="/" element={<Home />} />
