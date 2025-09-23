@@ -6,6 +6,7 @@ from middleware.test_middleware import TestMiddleware
 from dotenv import load_dotenv
 import os
 from config.cors_config import init_cors
+from config.db import startup_db_client, shutdown_db_client, db_client
 
 load_dotenv()
 
@@ -14,7 +15,15 @@ app = FastAPI(title="ExtractIQ", description='Backend for ExtractIQ', version='1
 
 init_cors(app)
 
-app.add_middleware(TestMiddleware)
+# app.add_middleware(TestMiddleware)
+
+@app.on_event("startup")
+async def on_startup():
+    await startup_db_client()
+
+@app.on_event("shutdown")
+async def on_shutdown():
+    await shutdown_db_client()
 
 @app.get('/')
 async def root():
