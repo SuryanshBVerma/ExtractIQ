@@ -4,6 +4,8 @@ from motor.motor_asyncio import AsyncIOMotorGridFSBucket
 from datetime import datetime
 import shutil
 import os
+from fastapi.responses import StreamingResponse
+from io import BytesIO
 from bson import ObjectId
 
 router = APIRouter()
@@ -94,12 +96,13 @@ async def download_document(document_id: str, db = Depends(get_db)):
         grid_out = await fs.open_download_stream(file_id)
         contents = await grid_out.read()
         
-        return {
-            "filename": document["name"],
-            "content_type": grid_out.content_type,
-            "contents": contents,
-            "size": grid_out.length
-        }
+        return StreamingResponse(
+            BytesIO(contents),
+            media_type=document["content_type"],
+            headers={
+                "Content-Disposition": f'attachment; filename="{document["name"]}"'
+            }
+        )
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error downloading file: {str(e)}")
 
