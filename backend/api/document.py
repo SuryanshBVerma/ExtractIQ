@@ -107,3 +107,22 @@ async def download_document(document_id: str, db = Depends(get_db)):
         raise HTTPException(status_code=500, detail=f"Error downloading file: {str(e)}")
 
 
+@router.delete("/document/{document_id}")
+async def delete_document(document_id: str, db = Depends(get_db)):
+    try:
+        # Find document metadata
+        document = await db["Documents"].find_one({"_id": ObjectId(document_id)})
+        if not document:
+            raise HTTPException(status_code=404, detail="Document not found")
+
+        # Delete file from GridFS
+        fs = AsyncIOMotorGridFSBucket(db)
+        file_id = document["file_id"]
+        await fs.delete(file_id)
+
+        # Delete metadata from Documents collection
+        await db["Documents"].delete_one({"_id": ObjectId(document_id)})
+
+        return {"message": "Document deleted successfully"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error deleting document: {str(e)}")
