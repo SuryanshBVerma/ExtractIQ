@@ -1,7 +1,7 @@
 from fastapi.middleware.cors import CORSMiddleware
 
 origins = [
-    "http://localhost:5137", # React default port
+    "http://localhost:5173", # React default port
 ]
 
 def init_cors(app):
