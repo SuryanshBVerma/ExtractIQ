@@ -46,4 +46,4 @@ async def get_db():
     global db_client
     if not db_client:
         raise Exception("DB client not initialized. Did you call startup_db_client?")
-    return db_client["ExtractIQ"]
+    return db_client.ExtractIQ
