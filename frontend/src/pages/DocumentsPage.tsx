@@ -15,15 +15,22 @@ type Document = {
 const VITE_BASE_URL_BACKEND = import.meta.env.VITE_BASE_URL_BACKEND
 // Simulated fetch function (replace with real API call)
 const fetchDocuments = async (): Promise<Document[]> => {
-    return new Promise((resolve) => {
-        setTimeout(() => {
-            resolve([
-                { id: 1, name: 'Invoice_2025.pdf', uploaded: '2025-09-10', status: 'Processed' },
-                { id: 2, name: 'Report_Q3.docx', uploaded: '2025-09-12', status: 'Pending' },
-                { id: 3, name: 'Contract_Agreement.pdf', uploaded: '2025-09-15', status: 'Processed' },
-            ]);
-        }, 1200);
-    });
+    try {
+        const response = await fetch(`${VITE_BASE_URL_BACKEND}/api/documents`);
+        if (!response.ok) {
+            throw new Error('Failed to fetch documents');
+        }
+        const data = await response.json();
+        // Map backend response to Document[]
+        return (data.documents || []).map((doc: any) => ({
+            id: doc.id || doc._id,
+            name: doc.name,
+            uploaded: doc.uploaded ? new Date(doc.uploaded).toLocaleDateString('en-CA') : '',
+            status: doc.status,
+        }));
+    } catch (error) {
+        throw error;
+    }
 };
 
 const DocumentsPage: React.FC = () => {
@@ -96,7 +103,9 @@ const DocumentsPage: React.FC = () => {
             if (!response.ok) {
                 throw new Error('Upload failed');
             }
-            // Optionally refresh documents list here
+            // Refresh documents list after upload
+            const docs = await fetchDocuments();
+            setDocuments(docs);
             setOpenUploadModal(false);
             setSelectedFiles([]);
         } catch (err) {
