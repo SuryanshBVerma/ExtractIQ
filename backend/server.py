@@ -5,12 +5,14 @@ from api import health, lang_extract, document
 from middleware.test_middleware import TestMiddleware
 from dotenv import load_dotenv
 import os
+from config import init_cors
 
 load_dotenv()
 
 
 app = FastAPI(title="ExtractIQ", description='Backend for ExtractIQ', version='1.0.0')
 
+init_cors(app)
 
 app.add_middleware(TestMiddleware)
 
