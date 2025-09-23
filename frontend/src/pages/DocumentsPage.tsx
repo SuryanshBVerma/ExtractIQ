@@ -2,18 +2,19 @@ import React, { useEffect, useState, useRef } from 'react';
 import { Skeleton } from '../components/ui/skeleton';
 import { Button } from '../components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from '../components/ui/dialog';
+import { Trash2 } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../components/ui/dialog';
 import { Input } from '../components/ui/input';
 
 type Document = {
-    id: number;
+    id: string;
     name: string;
     uploaded: string;
     status: string;
 };
 
 const VITE_BASE_URL_BACKEND = import.meta.env.VITE_BASE_URL_BACKEND
-// Simulated fetch function (replace with real API call)
+
 const fetchDocuments = async (): Promise<Document[]> => {
     try {
         const response = await fetch(`${VITE_BASE_URL_BACKEND}/api/documents`);
@@ -31,6 +32,13 @@ const fetchDocuments = async (): Promise<Document[]> => {
     } catch (error) {
         throw error;
     }
+};
+
+const downloadAndOpen = async (documentId: string) => {
+    const response = await fetch(`${VITE_BASE_URL_BACKEND}/api/document/download/${documentId}`);
+    const blob = await response.blob();
+    const url = window.URL.createObjectURL(blob);
+    window.open(url, '_blank');
 };
 
 const DocumentsPage: React.FC = () => {
@@ -112,6 +120,22 @@ const DocumentsPage: React.FC = () => {
             setUploadError('Failed to upload files');
         } finally {
             setUploading(false);
+        }
+    };
+
+    const handleDelete = async (documentId: string) => {
+        try {
+            const response = await fetch(`${VITE_BASE_URL_BACKEND}/api/document/${documentId}`, {
+                method: 'DELETE',
+            });
+            if (!response.ok) {
+                throw new Error('Failed to delete document');
+            }
+            // Refresh documents list after delete
+            const docs = await fetchDocuments();
+            setDocuments(docs);
+        } catch (err) {
+            setError('Failed to delete document');
         }
     };
 
@@ -205,7 +229,14 @@ const DocumentsPage: React.FC = () => {
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {documents.map((doc) => (
-                        <Card key={doc.id} className="rounded-lg border bg-card shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-150">
+                        <Card key={doc.id} className="relative rounded-lg border bg-card shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-150">
+                            <button
+                                className="absolute top-2 right-2 p-1 rounded cursor-pointer"
+                                title="Delete Document"
+                                onClick={() => handleDelete(doc.id)}
+                            >
+                                <Trash2 className="w-4 h-4 text-red-500" />
+                            </button>
                             <CardHeader>
                                 <CardTitle className="text-title-medium font-semibold leading-tight mb-2">{doc.name}</CardTitle>
                             </CardHeader>
@@ -214,7 +245,10 @@ const DocumentsPage: React.FC = () => {
                                 <div className="text-body-small text-light-fg-muted dark:text-dark-fg-muted mb-4">
                                     Status: <span className={doc.status === 'Processed' ? 'text-green-600' : 'text-yellow-600'}>{doc.status}</span>
                                 </div>
-                                <Button>
+                                <Button
+                                    onClick={() => downloadAndOpen(doc.id)}
+                                    className='cursor-pointer'
+                                >
                                     View Document
                                 </Button>
                             </CardContent>
