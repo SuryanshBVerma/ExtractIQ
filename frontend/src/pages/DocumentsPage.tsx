@@ -12,6 +12,7 @@ type Document = {
     status: string;
 };
 
+const VITE_BASE_URL_BACKEND = import.meta.env.VITE_BASE_URL_BACKEND
 // Simulated fetch function (replace with real API call)
 const fetchDocuments = async (): Promise<Document[]> => {
     return new Promise((resolve) => {
@@ -30,8 +31,11 @@ const DocumentsPage: React.FC = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
-    const [open, setOpen] = useState(false);
+    const [openUploadModal, setOpenUploadModal] = useState(false);
     const [dragActive, setDragActive] = useState(false);
+    const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+    const [uploading, setUploading] = useState(false);
+    const [uploadError, setUploadError] = useState<string | null>(null);
     const inputRef = useRef<HTMLInputElement | null>(null);
 
     useEffect(() => {
@@ -62,8 +66,7 @@ const DocumentsPage: React.FC = () => {
         e.stopPropagation();
         setDragActive(false);
         if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-            // Handle file upload logic here
-            // e.dataTransfer.files
+            setSelectedFiles([e.dataTransfer.files[0]]);
         }
     };
 
@@ -71,50 +74,105 @@ const DocumentsPage: React.FC = () => {
         inputRef.current?.click();
     };
 
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files && e.target.files.length > 0) {
+            setSelectedFiles([e.target.files[0]]);
+        }
+    };
+
+    const handleUpload = async () => {
+        if (selectedFiles.length === 0) return;
+        setUploading(true);
+        setUploadError(null);
+        const formData = new FormData();
+        selectedFiles.forEach((file) => {
+            formData.append('file', file);
+        });
+        try {
+            const response = await fetch(`${VITE_BASE_URL_BACKEND}/api/upload/document`, {
+                method: 'POST',
+                body: formData,
+            });
+            if (!response.ok) {
+                throw new Error('Upload failed');
+            }
+            // Optionally refresh documents list here
+            setOpenUploadModal(false);
+            setSelectedFiles([]);
+        } catch (err) {
+            setUploadError('Failed to upload files');
+        } finally {
+            setUploading(false);
+        }
+    };
+
     return (
         <div className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8 py-8">
             <div className="flex items-center justify-between mb-6">
                 <h1 className="text-title-large font-semibold leading-tight text-light-fg-default dark:text-dark-fg-default">Documents</h1>
                 <Button
-                    onClick={() => setOpen(true)}
+                    onClick={() => setOpenUploadModal(true)}
                     className="font-medium text-sm px-4 py-2 rounded transition-all duration-150 hover:shadow-sm hover:-translate-y-0.5 hover:cursor-pointer"
                 >
                     Upload
                 </Button>
             </div>
 
-            <Dialog open={open} onOpenChange={setOpen}>
+            <Dialog
+                open={openUploadModal}
+                onOpenChange={(open) => {
+                    setOpenUploadModal(open);
+                    if (!open) {
+                        setSelectedFiles([]);
+                        setUploadError("")
+                    }
+                }}
+            >
                 <DialogContent className="max-w-md mx-auto">
                     <DialogHeader>
                         <DialogTitle>Upload Document</DialogTitle>
                     </DialogHeader>
                     <div
-                        className={`border-2 border-dashed rounded-lg p-6 flex flex-col items-center justify-center cursor-pointer transition-all duration-150 ${dragActive ? 'border-green bg-muted' : 'border-border bg-card'}`}
+                        className={`border-2 border-dashed rounded-lg p-6 flex flex-col items-center justify-center cursor-pointer transition-all duration-150 ${dragActive ? 'border-green bg-muted' : 'bg-card'}`}
                         onDragEnter={handleDrag}
                         onDragOver={handleDrag}
                         onDragLeave={handleDrag}
                         onDrop={handleDrop}
                     >
-                        <span className="text-body-medium text-muted-foreground mb-2">Drag & drop files here</span>
-                        <span className="text-body-small text-muted-foreground mb-4">or</span>
-                        <Button variant="secondary" onClick={handleBrowseClick} className="mb-2">Browse from computer</Button>
-                        <Input 
-                            ref={inputRef} 
-                            type="file" 
-                            multiple 
-                            className="hidden" 
-                            />
+                        {selectedFiles.length === 0 ? (
+                            <>
+                                <span className="text-body-medium text-muted-foreground mb-2">Drag & drop files here</span>
+                                <span className="text-body-small text-muted-foreground mb-4">or</span>
+                                <Button variant="secondary" onClick={handleBrowseClick} className="mb-2">Browse from computer</Button>
+                                <Input 
+                                    ref={inputRef} 
+                                    type="file" 
+                                    className="hidden" 
+                                    onChange={handleFileChange}
+                                />
+                            </>
+                        ) : (
+                            <>
+                                <div className="w-full mb-4">
+                                    <div className="font-medium mb-2">Selected files:</div>
+                                    <ul className="text-sm text-muted-foreground mb-2">
+                                        {selectedFiles.map((file, idx) => (
+                                            <li key={idx}>{file.name}</li>
+                                        ))}
+                                    </ul>
+                                    <Button 
+                                        variant="default" 
+                                        onClick={handleUpload} 
+                                        disabled={uploading} 
+                                        className="w-full cursor-pointer"
+                                    >
+                                        {uploading ? 'Uploading...' : 'Upload'}
+                                    </Button>
+                                    {uploadError && <div className="text-red-500 mt-2 text-sm">{uploadError}</div>}
+                                </div>
+                            </>
+                        )}
                     </div>
-                    <DialogClose asChild>
-                        <Button 
-                            variant="ghost" 
-                            className="mt-4 w-full border border-red-100 hover:cursor-pointer
-                              hover:bg-red-50 hover:text-red-500
-                              dark:hover:bg-red-900 dark:hover:text-red-100 dark:border-red-900"
-                        >
-                            Close
-                        </Button>
-                    </DialogClose>
                 </DialogContent>
             </Dialog>
 
