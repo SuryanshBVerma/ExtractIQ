@@ -14,7 +14,7 @@ type Document = {
 };
 
 const VITE_BASE_URL_BACKEND = import.meta.env.VITE_BASE_URL_BACKEND
-// Simulated fetch function (replace with real API call)
+
 const fetchDocuments = async (): Promise<Document[]> => {
     try {
         const response = await fetch(`${VITE_BASE_URL_BACKEND}/api/documents`);
@@ -123,6 +123,22 @@ const DocumentsPage: React.FC = () => {
         }
     };
 
+    const handleDelete = async (documentId: string) => {
+        try {
+            const response = await fetch(`${VITE_BASE_URL_BACKEND}/api/document/${documentId}`, {
+                method: 'DELETE',
+            });
+            if (!response.ok) {
+                throw new Error('Failed to delete document');
+            }
+            // Refresh documents list after delete
+            const docs = await fetchDocuments();
+            setDocuments(docs);
+        } catch (err) {
+            setError('Failed to delete document');
+        }
+    };
+
     return (
         <div className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8 py-8">
             <div className="flex items-center justify-between mb-6">
@@ -217,7 +233,7 @@ const DocumentsPage: React.FC = () => {
                             <button
                                 className="absolute top-2 right-2 p-1 rounded cursor-pointer"
                                 title="Delete Document"
-                                // onClick={...} // Add delete handler here
+                                onClick={() => handleDelete(doc.id)}
                             >
                                 <Trash2 className="w-4 h-4 text-red-500" />
                             </button>
