@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import DocumentsPage from './pages/DocumentsPage';
+import SchemaPage from './pages/SchemaPage';
 
 
 
@@ -11,10 +12,6 @@ function Home() {
   return <div className="p-8">Home Page</div>;
 }
 
-
-function Schemas() {
-  return <div className="p-8">Schemas Page</div>;
-}
 
 function Jobs() {
   return <div className="p-8">Jobs Page</div>;
@@ -63,7 +60,7 @@ function App() {
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/documents" element={<DocumentsPage />} />
-          <Route path="/schemas" element={<Schemas />} />
+          <Route path="/schemas" element={<SchemaPage />} />
           <Route path="/jobs" element={<Jobs />} />
           <Route path="/analytics" element={<Analytics />} />
           <Route path="/settings" element={<Settings />} />

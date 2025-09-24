@@ -4,6 +4,8 @@ from motor.motor_asyncio import AsyncIOMotorGridFSBucket
 from datetime import datetime
 import shutil
 import os
+from fastapi.responses import StreamingResponse
+from io import BytesIO
 from bson import ObjectId
 
 router = APIRouter()
@@ -94,13 +96,33 @@ async def download_document(document_id: str, db = Depends(get_db)):
         grid_out = await fs.open_download_stream(file_id)
         contents = await grid_out.read()
         
-        return {
-            "filename": document["name"],
-            "content_type": grid_out.content_type,
-            "contents": contents,
-            "size": grid_out.length
-        }
+        return StreamingResponse(
+            BytesIO(contents),
+            media_type=document["content_type"],
+            headers={
+                "Content-Disposition": f'attachment; filename="{document["name"]}"'
+            }
+        )
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error downloading file: {str(e)}")
 
 
+@router.delete("/document/{document_id}")
+async def delete_document(document_id: str, db = Depends(get_db)):
+    try:
+        # Find document metadata
+        document = await db["Documents"].find_one({"_id": ObjectId(document_id)})
+        if not document:
+            raise HTTPException(status_code=404, detail="Document not found")
+
+        # Delete file from GridFS
+        fs = AsyncIOMotorGridFSBucket(db)
+        file_id = document["file_id"]
+        await fs.delete(file_id)
+
+        # Delete metadata from Documents collection
+        await db["Documents"].delete_one({"_id": ObjectId(document_id)})
+
+        return {"message": "Document deleted successfully"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error deleting document: {str(e)}")
