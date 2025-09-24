@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
+import toast from 'react-hot-toast';
 import { Skeleton } from '../components/ui/skeleton';
 import { Button } from '../components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
@@ -44,7 +45,7 @@ const downloadAndOpen = async (documentId: string) => {
 const DocumentsPage: React.FC = () => {
     const [documents, setDocuments] = useState<Document[]>([]);
     const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
+    // const [error, setError] = useState<string | null>(null);
 
     const [openUploadModal, setOpenUploadModal] = useState(false);
     const [dragActive, setDragActive] = useState(false);
@@ -60,7 +61,7 @@ const DocumentsPage: React.FC = () => {
                 setLoading(false);
             })
             .catch(() => {
-                setError('Failed to fetch documents');
+                toast.error('Failed to fetch documents');
                 setLoading(false);
             });
     }, []);
@@ -116,8 +117,10 @@ const DocumentsPage: React.FC = () => {
             setDocuments(docs);
             setOpenUploadModal(false);
             setSelectedFiles([]);
+            toast.success('File uploaded successfully!');
         } catch (err) {
             setUploadError('Failed to upload files');
+            toast.error('Failed to upload files');
         } finally {
             setUploading(false);
         }
@@ -134,8 +137,9 @@ const DocumentsPage: React.FC = () => {
             // Refresh documents list after delete
             const docs = await fetchDocuments();
             setDocuments(docs);
+            toast.success('Document deleted successfully!');
         } catch (err) {
-            setError('Failed to delete document');
+            toast.error('Failed to delete document');
         }
     };
 
@@ -224,8 +228,6 @@ const DocumentsPage: React.FC = () => {
                         </Card>
                     ))}
                 </div>
-            ) : error ? (
-                <div className="text-red-600 dark:text-dark-danger text-center">{error}</div>
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {documents.map((doc) => (
