@@ -19,7 +19,7 @@ async def startup_db_client():
 
         # Create database and collections if not present
         db_name = "ExtractIQ"
-        collection_names = ["Documents"]  
+        collection_names = ["Documents", "schemas"]  
         
         database = db_client[db_name]
         existing_collections = await database.list_collection_names()
